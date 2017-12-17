@@ -26,3 +26,4 @@ models/*.html
 *.swp
 temp.html
 logs
+extensions/strategies/agg/settings.js
