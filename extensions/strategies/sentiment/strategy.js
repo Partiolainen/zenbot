@@ -53,16 +53,16 @@ return {
   onReport: function (s) {
 	var cols = []
 	if (typeof s.sentimentm10positive === 'number') {
-	 cols.push(z(2, n(s.sentimentm10positive).format('0'), ' ')['green'])
+	 cols.push(z(3, n(s.sentimentm10positive).format('0'), ' ')['green'])
 	} else cols.push(z(2, n(0).format('0'), ' ')['grey'])
 	if (typeof s.sentimentm60positive === 'number') {
-		cols.push(z(2, n(s.sentimentm60positive).format('0'), ' ')['green'])
+		cols.push(z(3, n(s.sentimentm60positive).format('0'), ' ')['green'])
 	} else cols.push(z(2, n(0).format('0'), ' ')['grey'])
 	if (typeof s.sentimentm10negative === 'number') {
-		cols.push(z(2, n(s.sentimentm10negative).format('0'), ' ')['red'])
+		cols.push(z(3, n(s.sentimentm10negative).format('0'), ' ')['red'])
 	} else cols.push(z(2, n(0).format('0'), ' ')['grey'])
 	if (typeof s.sentimentm60negative === 'number') {
-		cols.push(z(2, n(s.sentimentm60negative).format('0'), ' ')['red'])
+		cols.push(z(3, n(s.sentimentm60negative).format('0'), ' ')['red'])
 	} else cols.push(z(2, n(0).format('0'), ' ')['grey'])
 	
 	return cols
