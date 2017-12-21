@@ -26,6 +26,7 @@
     "convnetjs": "0.3.0",
     "ccxt": "^1.10.171",
     "express": "^4.16.2",
+    "fs": "^0.0.1-security",
     "gdax": "^0.4.2",
     "gemini-api": "^2.0.4",
     "glob": "^7.1.1",
