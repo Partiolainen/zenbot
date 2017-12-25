@@ -9,7 +9,7 @@ return {
   getOptions: function () {
     this.option('url', 'signal url', String, 'http://localhost/signals.json')
     this.option('period', 'period length', String, '1m')
-    //this.option('min_periods', 'min. number of history periods', Number, 52)
+    this.option('min_periods', 'min. number of history periods', Number, 52)
     this.option('rsi_periods', 'number of RSI periods', 14)
     this.option('oversold_rsi', 'buy when RSI reaches or drops below this value', Number, 30)
     this.option('overbought_rsi', 'sell when RSI reaches or goes above this value', Number, 82)
