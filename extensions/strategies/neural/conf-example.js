@@ -1,5 +1,7 @@
 var c = module.exports = {}
 
+/// This conf is for NEURAL strategy as a profitable sim example, use --period=1m
+
 // mongo configuration
 c.mongo = {}
 c.mongo.host = process.env.MONGODB_PORT_27017_TCP_ADDR || 'localhost'
@@ -11,22 +13,22 @@ c.mongo.password = null
 c.mongo.replicaSet = null
 
 // default selector. only used if omitting [selector] argument from a command.
-c.selector = 'gdax.BTC-USD'
+c.selector = 'poloniex.BCH-BTC'
 // name of default trade strategy
-c.strategy = 'trend_ema'
+c.strategy = 'neural'
 
 // Exchange API keys:
 
 // to enable GDAX trading, enter your API credentials:
 c.gdax = {}
-c.gdax.key = 'YOUR-API-KEY'
-c.gdax.b64secret = 'YOUR-BASE64-SECRET'
-c.gdax.passphrase = 'YOUR-PASSPHRASE'
+c.gdax.key = 'XXX'
+c.gdax.b64secret = 'XXX'
+c.gdax.passphrase = 'XXX'
 
 // to enable Poloniex trading, enter your API credentials:
 c.poloniex = {}
-c.poloniex.key = 'YOUR-API-KEY'
-c.poloniex.secret = 'YOUR-SECRET'
+c.poloniex.key = 'KEY'
+c.poloniex.secret = 'SECRET'
 // please note: poloniex does not support market orders via the API
 
 // to enable Kraken trading, enter your API credentials:
@@ -117,21 +119,21 @@ c.profit_stop_pct = 1
 // avoid trading at a slippage above this pct
 c.max_slippage_pct = 5
 // buy with this % of currency balance (WARNING : sim won't work properly if you set this value to 100)
-c.buy_pct = 99
+c.buy_pct = 100
 // sell with this % of asset balance (WARNING : sim won't work properly if you set this value to 100)
-c.sell_pct = 99
+c.sell_pct = 100
 // ms to adjust non-filled order after
-c.order_adjust_time = 5000
+c.order_adjust_time = 15000
 // avoid selling at a loss below this pct set to 0 to ensure selling at a higher price...
 c.max_sell_loss_pct = 25
 // ms to poll order status
-c.order_poll_time = 5000
+c.order_poll_time = 15000
 // ms to wait for settlement (after an order cancel)
 c.wait_for_settlement = 5000
 // % to mark down buy price for orders
-c.markdown_buy_pct = 0
-// % to mark up sell price for orders
-c.markup_sell_pct = 0
+c.markdown_buy_pct = 0.5
+// % to mark up sell prie for orders
+c.markup_sell_pct = 0.5
 // become a market taker (high fees) or a market maker (low fees)
 c.order_type = 'maker'
 // when supported by the exchange, use post only type orders.
@@ -142,9 +144,9 @@ c.post_only = true
 // default # days for backfill and sim commands
 c.days = 14
 // ms to poll new trades at
-c.poll_trades = 30000
+c.poll_trades = 15000
 // amount of currency to start simulations with
-c.currency_capital = 1000
+c.currency_capital = 1
 // amount of asset to start simulations with
 c.asset_capital = 0
 // for sim, reverse time at the end of the graph, normalizing buy/hold to 0
@@ -196,9 +198,6 @@ c.notifiers.discord = {}
 c.notifiers.discord.on = false // false discord disabled; true discord enabled (key should be correct)
 c.notifiers.discord.id = 'YOUR-WEBHOOK-ID'
 c.notifiers.discord.token = 'YOUR-WEBHOOK-TOKEN'
-c.notifiers.discord.username = '' // default "Zenbot"
-c.notifiers.discord.avatar_url = ''
-c.notifiers.discord.color = null // color as a decimal
 // end discord configs
 
 // prowl configs
@@ -213,21 +212,6 @@ c.notifiers.textbelt.on = false // false textbelt disabled; true textbelt enable
 c.notifiers.textbelt.phone = '3121234567'
 c.notifiers.textbelt.key = 'textbelt'
 // end textbelt configs
-
-// pushover configs
-c.notifiers.pushover = {}
-c.notifiers.pushover.on = false // false pushover disabled; true pushover enabled (keys should be correct)
-c.notifiers.pushover.token = 'YOUR-API-TOKEN' // create application and supply the token here
-c.notifiers.pushover.user = 'YOUR-USER-KEY' // this is your own user's key (not application related)
-c.notifiers.pushover.priority = '0' // choose a priority to send zenbot messages with, see https://pushover.net/api#priority
-// end pushover configs
-
-// telegram configs
-c.notifiers.telegram = {};
-c.notifiers.telegram.on = false // false telegram disabled; true telegram enabled (key should be correct)
-c.notifiers.telegram.bot_token = 'YOUR-BOT-TOKEN'
-c.notifiers.telegram.chat_id = 'YOUR-CHAT-ID' // the id of the chat the messages should be send in
-// end telegram configs
 
 // output
 c.output  = {}
