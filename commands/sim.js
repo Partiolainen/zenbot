@@ -24,6 +24,8 @@ module.exports = function container (get, set, clear) {
       .option('--asset_capital <amount>', 'amount of start capital in asset', Number, c.asset_capital)
       .option('--avg_slippage_pct <pct>', 'avg. amount of slippage to apply to trades', Number, c.avg_slippage_pct)
       .option('--buy_pct <pct>', 'buy with this % of currency balance', Number, c.buy_pct)
+      .option('--buy_abs_max <val>', 'buy with this absolute value of currency balance', Number, c.buy_abs_max)
+      .option('--buy_when_asset_less <val>', 'buy only if asset balance is less than value', Number, c.buy_when_asset_less)
       .option('--sell_pct <pct>', 'sell with this % of asset balance', Number, c.sell_pct)
       .option('--markdown_buy_pct <pct>', '% to mark down buy price', Number, c.markdown_buy_pct)
       .option('--markup_sell_pct <pct>', '% to mark up sell price', Number, c.markup_sell_pct)
