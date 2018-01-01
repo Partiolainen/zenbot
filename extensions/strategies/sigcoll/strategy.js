@@ -19,13 +19,13 @@ return {
   },
 
   calculate: function (s) {
-    get('lib.rsi')(s, 'rsi', s.options.rsi_periods)
+    //get('lib.rsi')(s, 'rsi', s.options.rsi_periods)
     get('lib.sigcoll')(s, 'sigcoll', s.options.url)
   },
 
   onPeriod: function (s, cb) {
-    if (s.in_preroll) return cb()
-    if (typeof s.period.rsi === 'number') {
+    //if (s.in_preroll) return cb()
+    /*if (typeof s.period.rsi === 'number') {
       if (s.trend !== 'oversold' && s.trend !== 'long' && s.period.rsi <= s.options.oversold_rsi) {
         s.rsi_low = s.period.rsi
         s.trend = 'oversold'
@@ -59,20 +59,22 @@ return {
           s.signal = 'sell'
         }
       }
-    }
+    }*/
 
     //simle buy/sell for test
-    if(s.period.close<=s.period.sigcoll.buyprice){
+    if(s.period.sigcoll.price!=null && s.period.sigcoll.price <= s.period.sigcoll.buyprice){
       s.signal = 'buy'
     }
-    if(s.period.close>=s.period.sigcoll.target || s.period.close<=s.period.sigcoll.stoploss){
+    else if(s.period.sigcoll.price!=null && 
+      (s.period.sigcoll.price >= s.period.sigcoll.target || s.period.sigcoll.price <= s.period.sigcoll.stoploss)){
       s.signal = 'sell'
-    }
+    } else s.signal = 'hold'
     cb()
   },
 
   onReport: function (s) {
     var cols = []
+    
     if (s.period.sigcoll){
       if (typeof s.period.sigcoll.buyprice === 'number') {
         cols.push(z(11, n(s.period.sigcoll.buyprice).format('0.00000000'), ' ')['cyan'])
@@ -83,6 +85,10 @@ return {
       if (typeof s.period.sigcoll.stoploss === 'number') {
         cols.push(z(11, n(s.period.sigcoll.stoploss).format('0.00000000'), ' ')['red'])
       }
+
+      /*if (typeof s.period.sigcoll.price === 'number') {
+        cols.push(z(11, n(s.period.sigcoll.price).format('0.00000000'), ' ')['yellow'])
+      }*/
     }
     return cols
   }
