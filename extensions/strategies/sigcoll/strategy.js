@@ -11,7 +11,7 @@ return {
     this.option('period', 'period length', String, '1m')
     this.option('min_periods', 'min. number of history periods', Number, 52)
     this.option('rsi_periods', 'number of RSI periods', 14)
-    this.option('oversold_rsi', 'buy when RSI reaches or drops below this value', Number, 30)
+    this.option('oversold_rsi', 'buy when RSI reaches or drops below this value', Number, 45)
     this.option('overbought_rsi', 'sell when RSI reaches or goes above this value', Number, 82)
     this.option('rsi_recover', 'allow RSI to recover this many points before buying', Number, 3)
     this.option('rsi_drop', 'allow RSI to fall this many points before selling', Number, 0)
@@ -24,7 +24,7 @@ return {
   },
 
   onPeriod: function (s, cb) {
-    //if (s.in_preroll) return cb()
+    if (s.in_preroll) return cb()
     /*if (typeof s.period.rsi === 'number') {
       if (s.trend !== 'oversold' && s.trend !== 'long' && s.period.rsi <= s.options.oversold_rsi) {
         s.rsi_low = s.period.rsi
@@ -62,11 +62,12 @@ return {
     }*/
 
     //simle buy/sell for test
-    if(s.period.sigcoll.price!=null && s.period.sigcoll.price <= s.period.sigcoll.buyprice){
+    if(s.period.sigcoll.price!=null && s.period.sigcoll.buyprice!=null && s.period.sigcoll.price <= s.period.sigcoll.buyprice
+      && s.period.rsi <= s.options.oversold_rsi){
       s.signal = 'buy'
     }
-    else if(s.period.sigcoll.price!=null && 
-      (s.period.sigcoll.price >= s.period.sigcoll.target || s.period.sigcoll.price <= s.period.sigcoll.stoploss)){
+    else if(s.period.sigcoll.price!=null && s.period.sigcoll.target0 != null &&
+      (s.period.sigcoll.price >= s.period.sigcoll.target0 || s.period.sigcoll.price <= s.period.sigcoll.stoploss)){
       s.signal = 'sell'
     } else s.signal = 'hold'
     cb()
@@ -79,8 +80,8 @@ return {
       if (typeof s.period.sigcoll.buyprice === 'number') {
         cols.push(z(11, n(s.period.sigcoll.buyprice).format('0.00000000'), ' ')['cyan'])
       }
-      if (typeof s.period.sigcoll.target === 'number') {
-        cols.push(z(11, n(s.period.sigcoll.target).format('0.00000000'), ' ')['green'])
+      if (typeof s.period.sigcoll.target0 === 'number') {
+        cols.push(z(11, n(s.period.sigcoll.target0).format('0.00000000'), ' ')['green'])
       }
       if (typeof s.period.sigcoll.stoploss === 'number') {
         cols.push(z(11, n(s.period.sigcoll.stoploss).format('0.00000000'), ' ')['red'])
