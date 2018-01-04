@@ -66,8 +66,8 @@ return {
       && s.period.rsi <= s.options.oversold_rsi){
       s.signal = 'buy'
     }
-    else if(s.period.sigcoll.price!=null && s.period.sigcoll.target0 != null &&
-      (s.period.sigcoll.price >= s.period.sigcoll.target0 || s.period.sigcoll.price <= s.period.sigcoll.stoploss)){
+    else if(s.period.sigcoll.price!=null && s.period.sigcoll.target != null &&
+      (s.period.sigcoll.price >= s.period.sigcoll.target || s.period.sigcoll.price <= s.period.sigcoll.stoploss)){
       s.signal = 'sell'
     } else s.signal = 'hold'
     cb()
@@ -80,8 +80,8 @@ return {
       if (typeof s.period.sigcoll.buyprice === 'number') {
         cols.push(z(11, n(s.period.sigcoll.buyprice).format('0.00000000'), ' ')['cyan'])
       }
-      if (typeof s.period.sigcoll.target0 === 'number') {
-        cols.push(z(11, n(s.period.sigcoll.target0).format('0.00000000'), ' ')['green'])
+      if (typeof s.period.sigcoll.target === 'number') {
+        cols.push(z(11, n(s.period.sigcoll.target).format('0.00000000'), ' ')['green'])
       }
       if (typeof s.period.sigcoll.stoploss === 'number') {
         cols.push(z(11, n(s.period.sigcoll.stoploss).format('0.00000000'), ' ')['red'])
