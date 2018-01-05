@@ -61,13 +61,13 @@ return {
       }
     }*/
 
-    //simle buy/sell for test
-    if(s.period.sigcoll.price!=null && s.period.sigcoll.buyprice!=null && s.period.sigcoll.price <= s.period.sigcoll.buyprice
+    //simple buy/sell for test
+    if(s.period.close!=null && s.period.sigcoll.buyprice!=null && s.period.close <= s.period.sigcoll.buyprice
       && s.period.rsi <= s.options.oversold_rsi){
       s.signal = 'buy'
     }
-    else if(s.period.sigcoll.price!=null && s.period.sigcoll.target != null &&
-      (s.period.sigcoll.price >= s.period.sigcoll.target || s.period.sigcoll.price <= s.period.sigcoll.stoploss)){
+    else if(s.period.close!=null && s.period.sigcoll.target != null &&
+      (s.period.close >= s.period.sigcoll.target || s.period.close <= s.period.sigcoll.stoploss)){
       s.signal = 'sell'
     } else s.signal = 'hold'
     cb()
@@ -87,8 +87,8 @@ return {
         cols.push(z(11, n(s.period.sigcoll.stoploss).format('0.00000000'), ' ')['red'])
       }
 
-      /*if (typeof s.period.sigcoll.price === 'number') {
-        cols.push(z(11, n(s.period.sigcoll.price).format('0.00000000'), ' ')['yellow'])
+      /*if (typeof s.period.close === 'number') {
+        cols.push(z(11, n(s.period.close).format('0.00000000'), ' ')['yellow'])
       }*/
     }
     return cols
