@@ -1,10 +1,11 @@
 var z = require('zero-fill')
-  , n = require('numbro');
+  , n = require('numbro')
+  , aroon = require('../../../lib/aroon')
+  , Phenotypes = require('../../../lib/phenotype')
 
-module.exports = function container(get, set, clear) {
-  return {
+module.exports = {
     name: 'aroon',
-    description: 'Attempts to buy low and sell high by tracking RSI high-water readings.',
+    description: 'Aroon indicator strategy',
 
     getOptions: function () {
       this.option('period', 'period length', String, '5m')
@@ -24,9 +25,8 @@ module.exports = function container(get, set, clear) {
     },
 
     calculate: function (s) {
-      get('lib.rsi')(s, 'rsi', s.options.rsi_periods)
-      get('lib.aroon')(s, s.options.aroon_period /*rsi_periods*/)
-      //console.log(s.lookback.length, function_desc);
+      rsi(s, 'rsi', s.options.rsi_periods)
+      aroon(s, s.options.aroon_period)
     },
 
     onPeriod: function (s, cb) {
@@ -109,4 +109,4 @@ module.exports = function container(get, set, clear) {
       return cols
     }
   }
-}
+
