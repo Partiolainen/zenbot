@@ -1,6 +1,7 @@
 var z = require('zero-fill')
   , n = require('numbro')
   , aroon = require('../../../lib/aroon')
+  , rsi = require('../../../lib/rsi')
   , Phenotypes = require('../../../lib/phenotype')
 
 module.exports = {
