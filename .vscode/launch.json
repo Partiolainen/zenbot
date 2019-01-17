@@ -10,9 +10,9 @@
             "name": "Launch Program",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/zenbot.js",
-            "args": ["sim", "",
+            "args": ["sim", "binance.XZC-BTC",
                      "--strategy", "ta_willr",
-                     "--days", "1",
+                     "--days", "10",
                      "--period", "1m"]
         }
     ]
