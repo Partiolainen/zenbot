@@ -12,8 +12,12 @@
             "program": "${workspaceFolder}/zenbot.js",
             "args": ["sim", "binance.XZC-BTC",
                      "--strategy", "ta_willr",
-                     "--days", "10",
-                     "--period", "1m"]
+                     "--days", "30",
+                     "--period", "5m",
+                     "--willr_oversold=-90",
+                     "--deposit", "0.1",
+                     "--currency_capital", "0.1",
+                     "--willr_overbought=-40"]
         }
     ]
 }

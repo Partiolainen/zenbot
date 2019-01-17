@@ -10,7 +10,7 @@ module.exports = {
 
   getOptions: function () {
     this.option('period', 'period length eg 5m', String, '5m')
-    this.option('min_periods', 'min. number of history periods', Number, 52)
+    this.option('min_periods', 'min. number of history periods', Number, 15)
     
     this.option('willr_periods', 'number of WillR periods', Number, 14)
     this.option('willr_oversold', 'number of WillR periods', Number, -94)
@@ -39,7 +39,7 @@ module.exports = {
     if (!s.in_preroll && typeof s.period.overbought_rsi === 'number') {
       if (s.overbought) {
         s.overbought = false
-        s.signal = 'sell'
+        //s.signal = 'sell'
         return cb()
       }
     }
