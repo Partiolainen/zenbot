@@ -32,8 +32,7 @@ module.exports = {
     if (s.in_preroll) return cb()
 
     willr(s, s.options.min_periods, s.options.willr_periods).then(function(signal) {
-      s.period['willr'] = signal     
-
+      s.period['willr'] = signal
       //cb()
     }).catch(function(error) {
       console.log(error)
@@ -119,7 +118,7 @@ module.exports = {
     //rsi_divisor: Phenotypes.Range(1, 10)
     willr_periods: Phenotypes.Range(7,25),
     willr_overbought: Phenotypes.Range(-50, 0),
-    willr_oversold: Phenotypes.RangeFloat(-100, -90)
+    willr_oversold: Phenotypes.Range(-100, -90)
   }
 }
 
