@@ -40,3 +40,4 @@ gen.*.sh
 .env
 scripts/auto_backtester/backtesting_*.csv
 database/*
+extensions/strategies/agg/settings.js

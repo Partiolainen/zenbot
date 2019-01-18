@@ -10,14 +10,15 @@
             "name": "Launch Program",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/zenbot.js",
-            "args": ["sim", "binance.XZC-BTC",
-                     "--strategy", "ta_willr",
-                     "--days", "30",
-                     "--period", "5m",
-                     "--willr_oversold=-90",
-                     "--deposit", "0.1",
-                     "--currency_capital", "0.1",
-                     "--willr_overbought=-40"]
+            "args": ["sim", "gdax.BTC-USD",
+                     "--strategy", "agg",
+                     "--days", "60",
+                     "--period", "15m",
+                     "--willr_oversold=-95",
+                     "--deposit", "1000",
+                     "--currency_capital", "1000",
+                     "--willr_overbought=-20",
+                     "--min_periods", "1"]
         }
     ]
 }
