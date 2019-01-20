@@ -11,14 +11,15 @@
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/zenbot.js",
             "args": ["sim", "gdax.BTC-USD",
-                     "--strategy", "agg",
+                     "--strategy", "ta_willr",
                      "--days", "60",
-                     "--period", "1m",
-                     "--willr_oversold=-90",
+                     "--period", "4h",
                      "--deposit", "1000",
                      "--currency_capital", "1000",
-                     "--willr_overbought=-30",
-                     "--min_periods", "1"]
+                     "--willr_periods", "14",
+                     "--willr_overbought=-35",
+                     "--willr_oversold=-75",
+                     "--min_periods", "20"]
         }
     ]
 }
