@@ -50,6 +50,7 @@ module.exports = {
   },
 
   onPeriod: function (s, cb) {
+    s.signal = null
     if (!s.in_preroll && typeof s.trend !== 'undefined') {
 
       // Sideways Market

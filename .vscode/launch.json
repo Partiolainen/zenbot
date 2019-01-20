@@ -7,7 +7,21 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch Program (agg)",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/zenbot.js",
+            "args": ["sim", "gdax.BTC-USD",
+                     "--strategy", "agg",
+                     "--days", "60",
+                     "--period", "1m",
+                     "--deposit", "1000",
+                     "--currency_capital", "1000",                     
+                     "--min_periods", "20"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program (willr)",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/zenbot.js",
             "args": ["sim", "gdax.BTC-USD",

@@ -46,7 +46,7 @@ module.exports = {
 
     willr(s, s.options.min_periods, s.options.willr_periods).then(function(signal) {
       s.period['willr'] = signal
-
+      s.signal = null
       if (typeof s.period.willr === 'number') {
         if(s.period.willr<=s.options.willr_oversold) {
           s.signal = 'buy'
