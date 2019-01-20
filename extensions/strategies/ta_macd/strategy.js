@@ -38,7 +38,7 @@ module.exports = {
       if (s.overbought) {
         s.overbought = false
         s.trend = 'overbought'
-        s.signal = 'sold'
+        s.signal = 'sell'
         return cb()
       }
     }

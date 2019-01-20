@@ -28,7 +28,7 @@ var sigTotal = 0, // numerical representation of overall signal (+ = buy, - = se
  * Period tick counter data
  */
 var periodTick = 0, // minutes
-  periodMax = 120 // minutes
+  periodMax = 15 // minutes
 
 /**
  * StrategyWrapper: dynamic strategy wrapper with strategy and parameters specified at runtime
