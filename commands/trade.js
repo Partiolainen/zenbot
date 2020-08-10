@@ -26,6 +26,7 @@ module.exports = function (program, conf) {
     .option('--order_type <type>', 'order type to use (maker/taker)', /^(maker|taker)$/i, conf.order_type)
     .option('--paper', 'use paper trading mode (no real trades will take place)', Boolean, false)
     .option('--manual', 'watch price and account balance, but do not perform trades automatically', Boolean, false)
+    .option('--reverse', 'use this and all your signals(buy/sell) will be switch! TAKE CARE!', Boolean, false)
     .option('--non_interactive', 'disable keyboard inputs to the bot', Boolean, false)
     .option('--filename <filename>', 'filename for the result output (ex: result.html). "none" to disable', String, conf.filename)
     .option('--currency_capital <amount>', 'for paper trading, amount of start capital in currency', Number, conf.currency_capital)
@@ -42,6 +43,7 @@ module.exports = function (program, conf) {
     .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, conf.buy_stop_pct)
     .option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, conf.profit_stop_enable_pct)
     .option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, conf.profit_stop_pct)
+    .option('--sell_cancel_pct <pct>', 'cancels the sale if the price is between this percentage (for more or less)', Number, conf.sell_cancel_pct)
     .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float', conf.max_sell_loss_pct)
     .option('--max_buy_loss_pct <pct>', 'avoid buying at a loss pct over this float', conf.max_buy_loss_pct)
     .option('--max_slippage_pct <pct>', 'avoid selling at a slippage pct above this float', conf.max_slippage_pct)
@@ -57,6 +59,8 @@ module.exports = function (program, conf) {
     .option('--reset_profit', 'start new profit calculation from 0')
     .option('--use_fee_asset', 'Using separated asset to pay for fees. Such as binance\'s BNB or Huobi\'s HT', Boolean, false)
     .option('--run_for <minutes>', 'Execute for a period of minutes then exit with status 0', String, null)
+    .option('--interval_trade <minutes>', 'The interval trade time', Number, conf.interval_trade)
+    .option('--quarentine_time <minutes>', 'For loss trade, set quarentine time for cancel buys', Number, conf.quarentine_time)
     .option('--debug', 'output detailed debug info')
     .action(function (selector, cmd) {
       var raw_opts = minimist(process.argv)
@@ -64,6 +68,12 @@ module.exports = function (program, conf) {
       var so = s.options
       if (so.run_for) {
         var botStartTime = moment().add(so.run_for, 'm')
+      }
+      if (!so.interval_trade) {
+        so.interval_trade = 10
+      }
+      if (!so.quarentine_time) {
+        so.quarentine_time = 10
       }
       delete so._
       if (cmd.conf) {
@@ -88,11 +98,10 @@ module.exports = function (program, conf) {
         console.log(('--buy_max_amt is deprecated, use --deposit instead!\n').red)
         so.deposit = so.buy_max_amt
       }
-      if (!so.min_periods) so.min_periods = 1
-
       so.selector = objectifySelector(selector || conf.selector)      
       var engine = engineFactory(s, conf)
       var collectionServiceInstance = collectionService(conf)
+      if (!so.min_periods) so.min_periods = 1
 
       const keyMap = new Map()
       keyMap.set('b', 'limit'.grey + ' BUY'.green)
@@ -111,52 +120,49 @@ module.exports = function (program, conf) {
       keyMap.set('d', 'dump statistical output to HTML file'.grey)
       keyMap.set('D', 'toggle automatic HTML dump to file'.grey)
 
+      var pushStr = ''
+
       function listKeys() {
-        console.log('\nAvailable command keys:')
+        printLog('Available command keys:', true)
         keyMap.forEach((value, key) => {
-          console.log(' ' + key + ' - ' + value)
+          printLog(' ' + key + ' - ' + value)
         })
       }
 
       function listOptions () {
-        console.log()
-        console.log(s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey)
-        console.log()
-        process.stdout.write(z(22, 'STRATEGY'.grey, ' ') + '\t' + so.strategy + '\t' + (require(`../extensions/strategies/${so.strategy}/strategy`).description).grey)
-        console.log('\n')
-        process.stdout.write([
+        printLog(s.exchange.name.toUpperCase() + ' exchange active trading options:'.grey, true)
+        printLog(z(22, 'STRATEGY'.grey, ' ') + '\t' + so.strategy + '\t' + (require(`../extensions/strategies/${so.strategy}/strategy`).description).grey, true)
+        printLog([
           z(24, (so.mode === 'paper' ? so.mode.toUpperCase() : so.mode.toUpperCase()) + ' MODE'.grey, ' '),
           z(26, 'PERIOD'.grey, ' '),
           z(30, 'ORDER TYPE'.grey, ' '),
           z(28, 'SLIPPAGE'.grey, ' '),
           z(33, 'EXCHANGE FEES'.grey, ' ')
-        ].join('') + '\n')
-        process.stdout.write([
+        ].join(''), true)
+        printLog([
           z(15, (so.mode === 'paper' ? '      ' : (so.mode === 'live' && (so.manual === false || typeof so.manual === 'undefined')) ? '       ' + 'AUTO'.black.bgRed + '    ' : '       ' + 'MANUAL'.black.bgGreen + '  '), ' '),
           z(13, so.period_length, ' '),
           z(29, (so.order_type === 'maker' ? so.order_type.toUpperCase().green : so.order_type.toUpperCase().red), ' '),
           z(31, (so.mode === 'paper' ? 'avg. '.grey + so.avg_slippage_pct + '%' : 'max '.grey + so.max_slippage_pct + '%'), ' '),
           z(20, (so.order_type === 'maker' ? so.order_type + ' ' + s.exchange.makerFee : so.order_type + ' ' + s.exchange.takerFee), ' ')
-        ].join('') + '\n')
-        process.stdout.write('')
-        process.stdout.write([
+        ].join(''))
+        printLog([
           z(19, 'BUY %'.grey, ' '),
           z(20, 'SELL %'.grey, ' '),
           z(35, 'TRAILING STOP %'.grey, ' '),
           z(33, 'TRAILING DISTANCE %'.grey, ' ')
-        ].join('') + '\n')
-        process.stdout.write([
+        ].join(''))
+        printLog([
           z(9, so.buy_pct + '%', ' '),
           z(9, so.sell_pct + '%', ' '),
           z(20, so.profit_stop_enable_pct + '%', ' '),
           z(20, so.profit_stop_pct + '%', ' ')
-        ].join('') + '\n')
-        process.stdout.write('')
+        ].join(''))
       }
 
       /* Implementing statistical Exit */
       function printTrade (quit, dump, statsonly = false) {
-        var tmp_balance = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
+        var tmp_balance = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
         if (quit) {
           if (s.my_trades.length) {
             s.my_trades.push({
@@ -217,7 +223,7 @@ module.exports = function (program, conf) {
         }
         if (!statsonly) {
           output_lines.forEach(function (line) {
-            console.log(line)
+            printLog(line)
           })
         }
         if (quit || dump) {
@@ -266,9 +272,9 @@ module.exports = function (program, conf) {
       function toggleStats(){
         shouldSaveStats = !shouldSaveStats
         if(shouldSaveStats)
-          console.log('Auto stats dump enabled')
+          printLog('Auto stats dump enabled')
         else
-          console.log('Auto stats dump disabled')
+          printLog('Auto stats dump disabled')
       }
 
       function saveStatsLoop(){
@@ -283,7 +289,7 @@ module.exports = function (program, conf) {
         if(!shouldSaveStats) return
 
         var output_lines = []
-        var tmp_balance = n(s.net_currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
+        var tmp_balance = n(s.balance.currency).add(n(s.period.close).multiply(s.balance.asset)).format('0.00000000')
 
         var profit = s.start_capital ? n(tmp_balance).subtract(s.start_capital).divide(s.start_capital) : n(0)
         output_lines.push('last balance: ' + n(tmp_balance).format('0.00000000').yellow + ' (' + profit.format('0.00%') + ')')
@@ -357,6 +363,79 @@ module.exports = function (program, conf) {
           //console.log('\nwrote'.grey, out_target)
         }
 
+      }
+
+      function printLog(str, cr = false) {
+        if (str) {
+          console.log((cr?'\n':'') + str)
+          pushStr += str + '\n'
+        }
+      }
+
+      function executeCommand(command) {
+        var info = { ctrl: false }
+        if (conf.debug) {
+          console.log('\nCommand received: ' + command)
+        }
+        executeKey(command, info)
+      }
+
+      function executeKey(key, info) {
+        if (key === 'l') {
+          listKeys()
+        } else if (key === 'b' && !info.ctrl ) {
+          engine.executeSignal('buy')
+          printLog('manual'.grey + ' limit ' + 'BUY'.green + ' command executed'.grey, true)
+        } else if (key === 'B' && !info.ctrl) {
+          engine.executeSignal('buy', null, null, false, true)
+          printLog('manual'.grey + ' market ' + 'BUY'.green + ' command executed'.grey, true)
+        } else if (key === 's' && !info.ctrl) {
+          engine.executeSignal('sell')
+          printLog('manual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey, true)
+        } else if (key === 'S' && !info.ctrl) {
+          engine.executeSignal('sell', null, null, false, true)
+          printLog('manual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey, true)
+        } else if ((key === 'c' || key === 'C') && !info.ctrl) {
+          delete s.buy_order
+          delete s.sell_order
+          printLog('manual'.grey + ' order cancel' + ' command executed'.grey, true)
+        } else if (key === 'm' && !info.ctrl && so.mode === 'live') {
+          so.manual = !so.manual
+          printLog('MANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse), true)
+        } else if (key === 'T' && !info.ctrl) {
+          so.order_type = 'taker'
+          printLog('Taker fees activated'.bgRed, true)
+        } else if (key === 'M' && !info.ctrl) {
+          so.order_type = 'maker'
+          printLog('Maker fees activated'.black.bgGreen, true)
+        } else if (key === 'o' && !info.ctrl) {
+          listOptions()
+        } else if (key === 'O' && !info.ctrl) {
+          printLog(cliff.inspect(so), true)
+        } else if (key === 'P' && !info.ctrl) {
+          printLog('Writing statistics...'.grey, true)
+          printTrade(false)
+        } else if (key === 'X' && !info.ctrl) {
+          printLog('Exiting... ' + '\nWriting statistics...'.grey, true)
+          printTrade(true)
+        } else if (key === 'd' && !info.ctrl) {
+          printLog('Dumping statistics...'.grey, true)
+          printTrade(false, true)
+        } else if (key === 'D' && !info.ctrl) {
+          printLog('Dumping statistics...'.grey, true)
+          toggleStats()
+        } else if (key === 'L' && !info.ctrl) {
+          debug.flip()
+          printLog('DEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse), true)
+        } else if (info.name === 'c' && info.ctrl) {
+          // @todo: cancel open orders before exit
+          process.exit()
+        }
+
+        if (pushStr) {
+          engine.pushMessage('Reply', colors.stripColors(pushStr))
+          pushStr = ''
+        }
       }
 
       var order_types = ['maker', 'taker']
@@ -474,62 +553,13 @@ module.exports = function (program, conf) {
 
                   forwardScan()
                   setInterval(forwardScan, so.poll_trades)
+                  if (!so.non_interactive) {
+                    engine.onMessage(executeCommand)
+                  }
                   readline.emitKeypressEvents(process.stdin)
                   if (!so.non_interactive && process.stdin.setRawMode) {
                     process.stdin.setRawMode(true)
-                    process.stdin.on('keypress', function (key, info) {
-                      if (key === 'l') {
-                        listKeys()
-                      } else if (key === 'b' && !info.ctrl ) {
-                        engine.executeSignal('buy')
-                        console.log('\nmanual'.grey + ' limit ' + 'BUY'.green + ' command executed'.grey)
-                      } else if (key === 'B' && !info.ctrl) {
-                        engine.executeSignal('buy', null, null, false, true)
-                        console.log('\nmanual'.grey + ' market ' + 'BUY'.green + ' command executed'.grey)
-                      } else if (key === 's' && !info.ctrl) {
-                        engine.executeSignal('sell')
-                        console.log('\nmanual'.grey + ' limit ' + 'SELL'.red + ' command executed'.grey)
-                      } else if (key === 'S' && !info.ctrl) {
-                        engine.executeSignal('sell', null, null, false, true)
-                        console.log('\nmanual'.grey + ' market ' + 'SELL'.red + ' command executed'.grey)
-                      } else if ((key === 'c' || key === 'C') && !info.ctrl) {
-                        delete s.buy_order
-                        delete s.sell_order
-                        console.log('\nmanual'.grey + ' order cancel' + ' command executed'.grey)
-                      } else if (key === 'm' && !info.ctrl && so.mode === 'live') {
-                        so.manual = !so.manual
-                        console.log('\nMANUAL trade in LIVE mode: ' + (so.manual ? 'ON'.green.inverse : 'OFF'.red.inverse))
-                      } else if (key === 'T' && !info.ctrl) {
-                        so.order_type = 'taker'
-                        console.log('\n' + 'Taker fees activated'.bgRed)
-                      } else if (key === 'M' && !info.ctrl) {
-                        so.order_type = 'maker'
-                        console.log('\n' + 'Maker fees activated'.black.bgGreen)
-                      } else if (key === 'o' && !info.ctrl) {
-                        listOptions()
-                      } else if (key === 'O' && !info.ctrl) {
-                        console.log('\n' + cliff.inspect(so))
-                      } else if (key === 'P' && !info.ctrl) {
-                        console.log('\nWriting statistics...'.grey)
-                        printTrade(false)
-                      } else if (key === 'X' && !info.ctrl) {
-                        console.log('\nExiting... ' + '\nWriting statistics...'.grey)
-                        printTrade(true)
-                      } else if (key === 'd' && !info.ctrl) {
-                        console.log('\nDumping statistics...'.grey)
-                        printTrade(false, true)
-                      } else if (key === 'D' && !info.ctrl) {
-                        console.log('\nDumping statistics...'.grey)
-                        toggleStats()
-                      } else if (key === 'L' && !info.ctrl) {
-                        debug.flip()
-                        console.log('\nDEBUG mode: ' + (debug.on ? 'ON'.green.inverse : 'OFF'.red.inverse))
-                      } else if (info.name === 'c' && info.ctrl) {
-                        // @todo: cancel open orders before exit
-                        console.log()
-                        process.exit()
-                      }
-                    })
+                    process.stdin.on('keypress', executeKey)
                   }
                 })
               })
@@ -596,7 +626,7 @@ module.exports = function (program, conf) {
               b.vs_buy_hold = (b.consolidated - b.buy_hold) / b.buy_hold
               conf.output.api.on && printTrade(false, false, true)
               if (so.mode === 'live') {
-                balances.save(b, function (err) {
+                balances.replaceOne({_id: b.id}, b, {upsert: true}, function (err) {
                   if (err) {
                     console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving balance')
                     console.error(err)
@@ -611,7 +641,7 @@ module.exports = function (program, conf) {
                 asset: s.balance.asset
               }
             }
-            sessions.save(session, function (err) {
+            sessions.replaceOne({_id: session.id}, session, {upsert: true}, function (err) {
               if (err) {
                 console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
                 console.error(err)
@@ -667,7 +697,7 @@ module.exports = function (program, conf) {
                 console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving session')
                 console.error(err)
               }
-              resume_markers.save(marker, function (err) {
+              resume_markers.replaceOne({_id: marker.id}, marker, {upsert: true}, function (err) {
                 if (err) {
                   console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving marker')
                   console.error(err)
@@ -680,7 +710,7 @@ module.exports = function (program, conf) {
                   my_trade.selector = so.selector.normalized
                   my_trade.session_id = session.id
                   my_trade.mode = so.mode
-                  my_trades.save(my_trade, function (err) {
+                  my_trades.insertOne(my_trade, function (err) {
                     if (err) {
                       console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
                       console.error(err)
@@ -696,7 +726,7 @@ module.exports = function (program, conf) {
                   period.session_id = session.id
                 }
                 period._id = period.id
-                periods.save(period, function (err) {
+                periods.replaceOne({_id: period.id}, period, {upsert: true}, function (err) {
                   if (err) {
                     console.error('\n' + moment().format('YYYY-MM-DD HH:mm:ss') + ' - error saving my_trade')
                     console.error(err)
@@ -714,6 +744,7 @@ module.exports = function (program, conf) {
             })
           }
           else {
+            trade_cursor += parseInt(so.poll_trades)
             saveSession()
           }
         })
